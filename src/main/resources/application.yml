@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: monitoring_priority_tasks
+  datasource:
+    url: jdbc:postgresql://localhost:5433/tasks
+    username: postgres
+    password: qwer1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: MzY0YjY4ZTM0NjM2ZGNjM2U1MmI0YmE2MjI0YzY3ZDllMzhhNGI0YmU3MzE0MzljM2VlM2I0ZTU2YjY0ZGUyYg==
+  expiration: 86400000
