@@ -204,7 +204,6 @@ Header:
 
 ### Configuracion
 Variables opcionales:
-- `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
 - `JWT_SECRET`
