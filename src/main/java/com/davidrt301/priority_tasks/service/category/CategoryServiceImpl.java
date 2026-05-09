@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {//contiene el códi
     @Override
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
-        if (categoryRepository.existsByName(request.name())) {
+        if (categoryRepository.existsByName(request.name())){
             throw new BusinessException("La categoría ya existe: " + request.name());
         }
         Category category = categoryMapper.toEntity(request);
@@ -34,9 +34,9 @@ public class CategoryServiceImpl implements CategoryService {//contiene el códi
     @Override
     @Transactional
     public CategoryResponse update(Long id, CategoryRequest request) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + id));
+        Category category = getIdOrThrow(id);
 
+        // Solo validamos si el nombre que viene en el request es DIFERENTE al actual
         if (!category.getName().equals(request.name()) && categoryRepository.existsByName(request.name())) {
             throw new BusinessException("Ya existe otra categoría con el nombre: " + request.name());
         }
@@ -48,9 +48,8 @@ public class CategoryServiceImpl implements CategoryService {//contiene el códi
     @Override
     @Transactional(readOnly = true)
     public CategoryResponse findById(Long id) {
-        return categoryRepository.findById(id)
-                .map(categoryMapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + id));
+        Category category = getIdOrThrow(id);
+        return categoryMapper.toResponse(category);
     }
 
     @Override
@@ -64,10 +63,8 @@ public class CategoryServiceImpl implements CategoryService {//contiene el códi
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Categoría no encontrada con ID: " + id);
-        }
-        categoryRepository.deleteById(id);
+        Category category = getIdOrThrow(id);
+        categoryRepository.deleteById(category.getId());
     }
 
     @Override
@@ -87,5 +84,10 @@ public class CategoryServiceImpl implements CategoryService {//contiene el códi
         Category category = new Category();
         category.setName(name);
         categoryRepository.save(category);
+    }
+
+    private Category getIdOrThrow(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + id));
     }
 }

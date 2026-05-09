@@ -26,7 +26,7 @@ public class JwtToken {
 
     public String generateToken(String subject, Map<String, Object> claims) {
         return Jwts.builder()
-                .claims(claims) // Agregamos los claims personalizados primero
+                .claims(claims) // Agregamos los claims personalizados 
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))

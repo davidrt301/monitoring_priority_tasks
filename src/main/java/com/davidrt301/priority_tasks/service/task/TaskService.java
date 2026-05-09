@@ -7,7 +7,6 @@ import com.davidrt301.priority_tasks.model.dtos.TaskResponse;
 
 public interface TaskService {
 
-    // CRUD Básico
     TaskResponse create(TaskRequest request);
 
     TaskResponse findById(Long id);
@@ -18,16 +17,15 @@ public interface TaskService {
 
     void delete(Long id);
 
-    // Métodos de Negocio Específicos
+    // métodos de negocio específicos
     TaskResponse markAsCompleted(Long id);
 
-    List<TaskResponse> findOverdueTasks();// buscarTareasPendientes
+    List<TaskResponse> findOverdueTasks();
 
     List<TaskResponse> findOverdueTasksByUserId(Long userId);// buscarTareasVencidasPorIdDeUsuario
 
-    List<TaskResponse> findTasksByUserId(Long userId);// Buscar tareas por ID de usuario
+    List<TaskResponse> findTasksByUserId(Long userId);
 
-    List<TaskResponse> findTasksByUserIdAndCategory(Long userId, Long categoryId);// Buscar tareas por ID de usuario y
-                                                                                  // categoría
+    List<TaskResponse> findTasksByUserIdAndCategory(Long userId, Long categoryId);
 
 }

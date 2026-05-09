@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,22 +25,19 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService{
 
     private final TaskRepository taskRepository;
-    private final UserRepository userRepository; // Necesario para validar el usuario
-    private final CategoryRepository categoryRepository; // Necesario para validar la categoría
+    private final UserRepository userRepository; 
+    private final CategoryRepository categoryRepository; 
     private final TaskMapper taskMapper;
+    private final Clock clock;
 
     @Override
     @Transactional
     public TaskResponse create(TaskRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + request.userId()));
-        Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + request.categoryId()));
-
-        // Ahora pasamos los 3 objetos al mapper. 
-        // MapStruct se encarga de setear el User y la Category por nosotros.
+        User user = validateUserExist(request.userId());
+        Category category = validateCategoryExist(request.categoryId());
         
         Task task = taskMapper.toEntity(request, category, user);
+        task.setCreationDate(LocalDateTime.now(clock)); // Sello de tiempo controlado
         
         return taskMapper.toResponse(taskRepository.save(task));
     }
@@ -47,9 +45,8 @@ public class TaskServiceImpl implements TaskService{
     @Override
     @Transactional(readOnly = true)
     public TaskResponse findById(Long id) {
-        return taskRepository.findById(id)
-                .map(taskMapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+        Task task = validateTaskExist(id);
+        return taskMapper.toResponse(task);
     }
 
     @Override
@@ -63,14 +60,11 @@ public class TaskServiceImpl implements TaskService{
     @Override
     @Transactional
     public TaskResponse update(Long id, TaskRequest request) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+        Task task = validateTaskExist(id);
 
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + request.userId()));
+        User user = validateUserExist(request.userId());
 
-        Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + request.categoryId()));
+        Category category = validateCategoryExist(request.categoryId());
 
         taskMapper.updateEntity(request, category, user, task);
 
@@ -89,17 +83,15 @@ public class TaskServiceImpl implements TaskService{
     @Override
     @Transactional
     public TaskResponse markAsCompleted(Long id) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+        Task task= validateTaskExist(id);
         task.setCompleted(true);
-        // Podrías añadir lógica para actualizar el TaskStatus si lo usas
         return taskMapper.toResponse(taskRepository.save(task));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TaskResponse> findOverdueTasks() {
-        return taskRepository.findByCompletedFalseAndExpirationDateBefore(LocalDateTime.now()).stream()
+        return taskRepository.findByCompletedFalseAndExpirationDateBefore(LocalDateTime.now(clock)).stream()
                 .map(taskMapper::toResponse)
                 .toList();
     }
@@ -107,11 +99,9 @@ public class TaskServiceImpl implements TaskService{
     @Override
     @Transactional(readOnly = true)
     public List<TaskResponse> findOverdueTasksByUserId(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("Usuario no encontrado con ID: " + userId);
-        }
+        ensureUserExists(userId);
         
-        return taskRepository.findByUserIdAndCompletedFalseAndExpirationDateBefore(userId, LocalDateTime.now())
+        return taskRepository.findByUserIdAndCompletedFalseAndExpirationDateBefore(userId, LocalDateTime.now(clock))
                 .stream()
                 .map(taskMapper::toResponse)
                 .toList();
@@ -120,10 +110,7 @@ public class TaskServiceImpl implements TaskService{
     @Override
     @Transactional(readOnly = true)
     public List<TaskResponse> findTasksByUserId(Long userId) {
-        // Verificamos primero si el usuario existe (Fail Fast)
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("Usuario no encontrado con ID: " + userId);
-        }
+        ensureUserExists(userId);
         
         return taskRepository.findByUserId(userId).stream()
                 .map(taskMapper::toResponse)
@@ -136,5 +123,26 @@ public class TaskServiceImpl implements TaskService{
         return taskRepository.findByUserIdAndCategoryId(userId, categoryId).stream()
                 .map(taskMapper::toResponse)
                 .toList();
+    }
+
+    private User validateUserExist(long id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+    }
+
+    private Category validateCategoryExist(long id){
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + id));
+    }
+
+    private Task validateTaskExist(long id){
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada con ID: " + id));
+    }
+
+    private void ensureUserExists(long id){
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
+        }
     }
 }

@@ -14,9 +14,9 @@ public record TaskRequest(
     @FutureOrPresent(message = "La fecha de vencimiento no puede ser en el pasado")
     LocalDateTime expirationDate,
 
-    @Min(value = 1, message = "La complejidad mínima es 1")
-    @Max(value = 10, message = "La complejidad máxima es 10")
-    int complexity,
+    @Min(value = 1, message = "La prioridad mínima es 1")
+    @Max(value = 10, message = "La prioridad máxima es 10")
+    int priority,
 
     @NotNull(message = "El ID de la categoría es obligatorio")
     Long categoryId,

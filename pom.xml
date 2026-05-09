@@ -34,6 +34,12 @@
 		<openapi.version>2.8.1</openapi.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -169,6 +175,16 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.14</version>
+				<configuration>
+					<excludes>
+						<exclude>com/davidrt301/priority_tasks/model/**</exclude>
+						<exclude>com/davidrt301/priority_tasks/config/**</exclude>
+						<exclude>com/davidrt301/priority_tasks/exceptions/**</exclude>
+						<exclude>com/davidrt301/priority_tasks/PriorityTasksApplication.class</exclude>
+						<!-- Excluir clases generadas por MapStruct -->
+						<exclude>**/*MapperImpl.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<!-- 1. Prepara el agente de runtime para instrumentar el código -->
 					<execution>

@@ -24,7 +24,7 @@ public abstract class TaskMapper {
     // Mapeo de Creación: Request + Entidades relacionadas -> Entidad Final
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "priority", ignore = true) // Se calcula en AfterMapping
-    @Mapping(target = "creationDate", expression = "java(java.time.LocalDateTime.now())")//Nos permite ejecutar código Java puro durante el mapeo. Aquí aseguramos que cada tarea nueva nazca con la fecha y hora actual del servidor.
+    @Mapping(target = "creationDate", ignore = true) // Lo setearemos en el Service con el Clock
     @Mapping(target = "completed", constant = "false")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "user", source = "user")//Aquí le decimos explícitamente a MapStruct que los objetos category y user que pasamos como parámetros deben asignarse a los atributos correspondientes de la entidad Task.
@@ -50,7 +50,7 @@ public abstract class TaskMapper {
     protected void calculatePriority(TaskRequest request, @MappingTarget Task task) {
         Priority priority = priorityRuleEngine.calculatePriority(
                 request.expirationDate().toLocalDate(),
-                request.complexity()
+                request.priority()
         );
         task.setPriority(priority);
     }

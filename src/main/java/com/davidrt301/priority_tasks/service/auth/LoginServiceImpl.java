@@ -12,7 +12,7 @@ import com.davidrt301.priority_tasks.config.security.JwtToken;
 import com.davidrt301.priority_tasks.exceptions.InternalServerException;
 import com.davidrt301.priority_tasks.model.dtos.UserRequest;
 import com.davidrt301.priority_tasks.model.dtos.UserResponse;
-import com.davidrt301.priority_tasks.model.dtos.Login.LoginReques;
+import com.davidrt301.priority_tasks.model.dtos.Login.LoginRequest;
 import com.davidrt301.priority_tasks.model.dtos.Login.LoginResponse;
 import com.davidrt301.priority_tasks.model.entities.User;
 import com.davidrt301.priority_tasks.repository.UserRepository;
@@ -30,14 +30,14 @@ public class LoginServiceImpl implements LoginService{
     private final UserService userService;
 
     @Override
-    public LoginResponse login(LoginReques reques) {
-        var auth = new UsernamePasswordAuthenticationToken(reques.username(), reques.password());
+    public LoginResponse login(LoginRequest request) {
+        var auth = new UsernamePasswordAuthenticationToken(request.username(), request.password());
         authenticationManager.authenticate(auth);
 
-        User user = userRepository.findByUsername(reques.username())
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new InternalServerException("Inconsistencia de datos: usuario autenticado no encontrado."));
                     
-        String token = jwtToken.generateToken(reques.username(), Map.of(
+        String token = jwtToken.generateToken(request.username(), Map.of(
                             "email", user.getEmail(),
                             "role", user.getRoleStatus().name()
         ));

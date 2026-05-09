@@ -40,8 +40,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             
             try{
                 Claims claims = jwtToken.extractAllClaims(token);
-
-                // Aquí podrías cargar el usuario y establecer la autenticación en el contexto de seguridad
+                
                 var username = claims.getSubject();
                 var email = claims.get("email", String.class);
                 var role = claims.get("role", String.class);
